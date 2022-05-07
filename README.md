@@ -2,18 +2,16 @@
 
 ## Versions
 
-- Azure Kuberetes Services
+- Azure Kubernetes Services
 - Ingress NGINX Controller
 - Cert Manager
-- Kuberetes Dashboard
+- Kubernetes Dashboard
 
-## Steps
+## Deploy Azure Kubernetes Cluster
 
-1. Deploy Azure Kubernetes Cluster
+## Deploy Ingress NGINX Controller
 
-2. Deploy Ingress NGINX Controller
-
-```
+```bash
 helm install \
   ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
@@ -23,34 +21,63 @@ helm install \
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-3. Deploy Cert Manager
+## Deploy Cert Manager
 
-```
+```bash
 helm install \
   cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace \
   --version v1.8.0 \
-  --set installCRDs=true \
-  --set ingressShim.defaultIssuerName="letsencrypt-prod" \
-  --set ingressShim.defaultIssuerKind="ClusterIssuer"
-
+  --set installCRDs=true
+kubectl apply -f ./cert-manager --namespace cert-manager
 ```
 
-4. Apply Let's Encrypt Cluster Issuer
+For troubleshot only, uninstall cert-manager
+```bash
+kubectl delete -f ./cert-manager --namespace cert-manager
+helm delete cert-manager --namespace cert-manager
+```
+
+## Apply Let's Encrypt Cluster Issuer
 
 Replace email with your email in /cert-manager/issuer.yaml line 8
-```
+```bash
 kubectl apply -f ./cert-manager
 ```
 
-5. Deploy Kubenates Dashboard
+## Deploy Kubenates Dashboard
 
 Replace host with your host in /kubernetes-dashboard/default-value.yaml line 182 and 189
-```
+
+```bash
 helm install \
   kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
   --namespace kubernetes-dashboard \
   --create-namespace \
   -f ./kubernetes-dashboard/default-value.yaml
+```
+
+## Deploy hello world app for validation
+
+```bash
+kubectl apply -f ./hello-world
+```
+
+For troubleshot only, uninstall cert-manager
+```bash
+kubectl delete -f ./hello-world
+```
+
+## Troubleshot
+
+###
+
+
+### SSL Cert not created
+
+```bash
+kubectl delete certificate tls-secret --namespace hello-world
+kubectl get certificaterequest --all-namespaces
+kubectl describe certificaterequest   tls-secret-cgnd9  --namespace hello-world
 ```
