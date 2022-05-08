@@ -9,6 +9,8 @@
 
 ## Deploy Azure Kubernetes Cluster
 
+Create AKS from Azure portal
+
 ## Deploy Ingress NGINX Controller
 
 ```bash
@@ -21,7 +23,9 @@ helm install \
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-## Deploy Cert Manager
+## Deploy Cert Manager and Apply Let's Encrypt Cluster Issuer
+
+Replace email with your email in /cert-manager/issuer.yaml line 8 and run following command:
 
 ```bash
 helm install \
@@ -30,25 +34,12 @@ helm install \
   --create-namespace \
   --version v1.8.0 \
   --set installCRDs=true
-kubectl apply -f ./cert-manager --namespace cert-manager
-```
-
-For troubleshot only, uninstall cert-manager
-```bash
-kubectl delete -f ./cert-manager --namespace cert-manager
-helm delete cert-manager --namespace cert-manager
-```
-
-## Apply Let's Encrypt Cluster Issuer
-
-Replace email with your email in /cert-manager/issuer.yaml line 8
-```bash
 kubectl apply -f ./cert-manager
 ```
 
 ## Deploy Kubenates Dashboard
 
-Replace host with your host in /kubernetes-dashboard/default-value.yaml line 182 and 189
+Replace host with your host in /kubernetes-dashboard/default-value.yaml line 182 and 189, then run following command:
 
 ```bash
 helm install \
@@ -58,26 +49,35 @@ helm install \
   -f ./kubernetes-dashboard/default-value.yaml
 ```
 
+To get a token for dashboard access, run following command
+
+```bash
+az aks get-credentials --resource-group aksplayground --name aksplayground -f - -a
+```
+
 ## Deploy hello world app for validation
 
 ```bash
 kubectl apply -f ./hello-world
 ```
 
-For troubleshot only, uninstall cert-manager
+## Clean up
+
+### Remove cert-manager
+
 ```bash
-kubectl delete -f ./hello-world
+kubectl delete -f ./cert-manager --namespace cert-manager
+helm delete cert-manager --namespace cert-manager
 ```
 
-## Troubleshot
-
-###
-
-
-### SSL Cert not created
+### Remove kubernetes-dashboard
 
 ```bash
-kubectl delete certificate tls-secret --namespace hello-world
-kubectl get certificaterequest --all-namespaces
-kubectl describe certificaterequest   tls-secret-cgnd9  --namespace hello-world
+helm delete kubernetes-dashboard --namespace kubernetes-dashboard
+```
+
+### Remove hello-world
+
+```bash
+kubectl delete -f ./hello-world
 ```
